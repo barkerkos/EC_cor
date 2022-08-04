@@ -1,0 +1,406 @@
+# remove nan data
+def removenan(u):
+    u_data = [value for i ,value in enumerate(u) if not np.isnan(value)]
+    u_index = [i for i ,value in enumerate(u) if not np.isnan(value)]
+    u_data = np.array(u_data)
+    u_index = np.array(u_index)
+    return [u_data,u_index]
+
+# detrend
+def detrend(u,u_index):
+    reg = LinearRegression().fit(np.array(u_index).reshape(-1,1), u)
+    u_tur_detrend =  u-(reg.coef_*u_index+reg.intercept_)
+    return u_tur_detrend
+
+def cal_corrcoef(u_tur_base,u_tur,u_index):
+    cor = []
+    #for i in range(int(len(u_index)/2)):
+    for i in range(int(len(u_index))):
+        cor.append(np.corrcoef(u_tur_base,np.append(u_tur[i:],u_tur[0:i]))[0,1])
+    return cor
+
+def get_mean_wind_direction(ux_hourly,uy_hourly):
+    if np.nanmean(uy_hourly) > 0 and np.nanmean(ux_hourly) > 0:
+        theta = np.arctan(np.nanmean(uy_hourly)/np.nanmean(ux_hourly))
+    elif np.nanmean(uy_hourly) > 0 and np.nanmean(ux_hourly) < 0:
+        theta = np.arctan(np.nanmean(uy_hourly)/np.nanmean(ux_hourly)) + np.pi
+    elif np.nanmean(uy_hourly) < 0 and np.nanmean(ux_hourly) < 0:
+        theta = np.arctan(np.nanmean(uy_hourly)/np.nanmean(ux_hourly)) + np.pi
+    elif np.nanmean(uy_hourly) < 0 and np.nanmean(ux_hourly) > 0:
+        theta = np.arctan(np.nanmean(uy_hourly)/np.nanmean(ux_hourly)) + 2*np.pi
+    elif np.nanmean(uy_hourly) == 0 and np.nanmean(ux_hourly) > 0:
+        theta = 0
+    elif np.nanmean(uy_hourly) > 0 and np.nanmean(ux_hourly) == 0:
+        theta = np.pi/2
+    elif np.nanmean(uy_hourly) == 0 and np.nanmean(ux_hourly) < 0:
+        theta = np.pi
+    elif np.nanmean(uy_hourly) < 0 and np.nanmean(ux_hourly) == 0:
+        theta = 1.5*np.pi
+    return theta
+
+def rotate(u,v): # rotate wind direction
+    angle_xy = get_mean_wind_direction(u,v)
+    u_ins_rotated = np.array(u)*np.cos(angle_xy)+np.array(v)*np.sin(angle_xy)
+    v_ins_rotated = np.array(v)*np.cos(angle_xy)-np.array(u)*np.sin(angle_xy)
+    return [u_ins_rotated,v_ins_rotated]
+    
+    
+def main(date,hour):
+    start_time = time.time() 
+    hour_ins = hour
+    date_ins = str(date)
+    # read ins data
+    directory_ins = "/projectnb/urbanclimate/yueqin/idaho_ec_jupyter/processed_data/"
+    u_ins = pickle.load(open(glob.glob(directory_ins+'u_ins_'+date_ins+'.pkl')[0],'rb'))[hour_ins*36000:(hour_ins+1)*36000][:]
+    v_ins = pickle.load(open(glob.glob(directory_ins+'v_ins_'+date_ins+'.pkl')[0],'rb'))[hour_ins*36000:(hour_ins+1)*36000][:]
+    w_ins = pickle.load(open(glob.glob(directory_ins+'w_ins_'+date_ins+'.pkl')[0],'rb'))[hour_ins*36000:(hour_ins+1)*36000][:]
+    
+    b2_u_ins = u_ins[:,5]
+    b3_u_ins = u_ins[:,6]
+    b4_u_ins = u_ins[:,7]
+    a1_u_ins = u_ins[:,8]
+    a2_u_ins = u_ins[:,9]
+    a3_u_ins = u_ins[:,10]
+    
+    b2_v_ins = v_ins[:,5]
+    b3_v_ins = v_ins[:,6]
+    b4_v_ins = v_ins[:,7]
+    a1_v_ins = v_ins[:,8]
+    a2_v_ins = v_ins[:,9]
+    a3_v_ins = v_ins[:,10]
+    
+    b2_w_ins = w_ins[:,5]
+    b3_w_ins = w_ins[:,6]
+    b4_w_ins = w_ins[:,7]
+    a1_w_ins = w_ins[:,8]
+    a2_w_ins = w_ins[:,9]
+    a3_w_ins = w_ins[:,10]
+    
+    # remove nan
+    b2_u_ins_removenan_data, b2_u_ins_index = removenan(b2_u_ins)
+    b3_u_ins_removenan_data, b3_u_ins_index = removenan(b3_u_ins)
+    b4_u_ins_removenan_data, b4_u_ins_index = removenan(b4_u_ins)
+    a1_u_ins_removenan_data, a1_u_ins_index = removenan(a1_u_ins)
+    a2_u_ins_removenan_data, a2_u_ins_index = removenan(a2_u_ins)
+    a3_u_ins_removenan_data, a3_u_ins_index = removenan(a3_u_ins)
+
+    b2_v_ins_removenan_data, b2_v_ins_index = removenan(b2_v_ins)
+    b3_v_ins_removenan_data, b3_v_ins_index = removenan(b3_v_ins)
+    b4_v_ins_removenan_data, b4_v_ins_index = removenan(b4_v_ins)
+    a1_v_ins_removenan_data, a1_v_ins_index = removenan(a1_v_ins)
+    a2_v_ins_removenan_data, a2_v_ins_index = removenan(a2_v_ins)
+    a3_v_ins_removenan_data, a3_v_ins_index = removenan(a3_v_ins)
+
+    b2_w_ins_removenan_data, b2_w_ins_index = removenan(b2_w_ins)
+    b3_w_ins_removenan_data, b3_w_ins_index = removenan(b3_w_ins)
+    b4_w_ins_removenan_data, b4_w_ins_index = removenan(b4_w_ins)
+    a1_w_ins_removenan_data, a1_w_ins_index = removenan(a1_w_ins)
+    a2_w_ins_removenan_data, a2_w_ins_index = removenan(a2_w_ins)
+    a3_w_ins_removenan_data, a3_w_ins_index = removenan(a3_w_ins)
+    
+    # rotate
+    b2_u_ins_rotate, b2_v_ins_rotate = rotate(b2_u_ins_removenan_data,b2_v_ins_removenan_data)
+    b2_u_ins_rotate, b2_w_ins_rotate = rotate(b2_u_ins_rotate,b2_w_ins_removenan_data)
+
+    b3_u_ins_rotate, b3_v_ins_rotate = rotate(b3_u_ins_removenan_data,b3_v_ins_removenan_data)
+    b3_u_ins_rotate, b3_w_ins_rotate = rotate(b3_u_ins_rotate,b3_w_ins_removenan_data)
+
+    b4_u_ins_rotate, b4_v_ins_rotate = rotate(b4_u_ins_removenan_data,b4_v_ins_removenan_data)
+    b4_u_ins_rotate, b4_w_ins_rotate = rotate(b4_u_ins_rotate,b4_w_ins_removenan_data)
+
+    a1_u_ins_rotate, a1_v_ins_rotate = rotate(a1_u_ins_removenan_data,a1_v_ins_removenan_data)
+    a1_u_ins_rotate, a1_w_ins_rotate = rotate(a1_u_ins_rotate,a1_w_ins_removenan_data)
+
+    a2_u_ins_rotate, a2_v_ins_rotate = rotate(a2_u_ins_removenan_data,a2_v_ins_removenan_data)
+    a2_u_ins_rotate, a2_w_ins_rotate = rotate(a2_u_ins_rotate,a2_w_ins_removenan_data)
+
+    a3_u_ins_rotate, a3_v_ins_rotate = rotate(a3_u_ins_removenan_data,a3_v_ins_removenan_data)
+    a3_u_ins_rotate, a3_w_ins_rotate = rotate(a3_u_ins_rotate,a3_w_ins_removenan_data)
+    
+    # detrend
+    b2_u_tur_detrend = detrend(b2_u_ins_rotate,b2_u_ins_index)
+    b3_u_tur_detrend = detrend(b3_u_ins_rotate,b3_u_ins_index)
+    b4_u_tur_detrend = detrend(b4_u_ins_rotate,b4_u_ins_index)
+    a1_u_tur_detrend = detrend(a1_u_ins_rotate,a1_u_ins_index)
+    a2_u_tur_detrend = detrend(a2_u_ins_rotate,a2_u_ins_index)
+    a3_u_tur_detrend = detrend(a3_u_ins_rotate,a3_u_ins_index)
+
+    b2_v_tur_detrend = detrend(b2_v_ins_rotate,b2_v_ins_index)
+    b3_v_tur_detrend = detrend(b3_v_ins_rotate,b3_v_ins_index)
+    b4_v_tur_detrend = detrend(b4_v_ins_rotate,b4_v_ins_index)
+    a1_v_tur_detrend = detrend(a1_v_ins_rotate,a1_v_ins_index)
+    a2_v_tur_detrend = detrend(a2_v_ins_rotate,a2_v_ins_index)
+    a3_v_tur_detrend = detrend(a3_v_ins_rotate,a3_v_ins_index)
+
+    b2_w_tur_detrend = detrend(b2_w_ins_rotate,b2_w_ins_index)
+    b3_w_tur_detrend = detrend(b3_w_ins_rotate,b3_w_ins_index)
+    b4_w_tur_detrend = detrend(b4_w_ins_rotate,b4_w_ins_index)
+    a1_w_tur_detrend = detrend(a1_w_ins_rotate,a1_w_ins_index)
+    a2_w_tur_detrend = detrend(a2_w_ins_rotate,a2_w_ins_index)
+    a3_w_tur_detrend = detrend(a3_w_ins_rotate,a3_w_ins_index)
+    
+    #### for cor uu ###
+    # keep all level data have the same time index
+    time_index_u = []
+    b2_u_tur_final = []
+    b3_u_tur_final = []
+    b4_u_tur_final = []
+    a1_u_tur_final = []
+    a2_u_tur_final = []
+    a3_u_tur_final = []
+
+    for i in b2_u_ins_index:
+        if len(np.where(b3_u_ins_index==i)[0])>0 and len(np.where(b4_u_ins_index==i)[0])>0 and len(np.where(a1_u_ins_index==i)[0])>0 and len(np.where(a2_u_ins_index==i)[0])>0 and len(np.where(a3_u_ins_index==i)[0])>0:
+            time_index_u.append(i)
+            b2_u_tur_final.append(b2_u_tur_detrend[np.where(b2_u_ins_index==i)][0])
+            b3_u_tur_final.append(b3_u_tur_detrend[np.where(b3_u_ins_index==i)][0])
+            b4_u_tur_final.append(b4_u_tur_detrend[np.where(b4_u_ins_index==i)][0])
+            a1_u_tur_final.append(a1_u_tur_detrend[np.where(a1_u_ins_index==i)][0])
+            a2_u_tur_final.append(a2_u_tur_detrend[np.where(a2_u_ins_index==i)][0])
+            a3_u_tur_final.append(a3_u_tur_detrend[np.where(a3_u_ins_index==i)][0])
+        else: 
+            continue
+
+    time_index_u = np.array(time_index_u)
+    b2_u_tur_final = np.array(b2_u_tur_final)
+    b3_u_tur_final = np.array(b3_u_tur_final)
+    b4_u_tur_final = np.array(b4_u_tur_final)
+    a1_u_tur_final = np.array(a1_u_tur_final)
+    a2_u_tur_final = np.array(a2_u_tur_final)
+    a3_u_tur_final = np.array(a3_u_tur_final)
+    
+    # calculate correlation coefficient
+    b2_uu_cor = cal_corrcoef(b2_u_tur_final,b2_u_tur_final,time_index_u)
+    b3_uu_cor = cal_corrcoef(b2_u_tur_final,b3_u_tur_final,time_index_u)
+    b4_uu_cor = cal_corrcoef(b2_u_tur_final,b4_u_tur_final,time_index_u)
+    a1_uu_cor = cal_corrcoef(b2_u_tur_final,a1_u_tur_final,time_index_u)
+    a2_uu_cor = cal_corrcoef(b2_u_tur_final,a2_u_tur_final,time_index_u)
+    a3_uu_cor = cal_corrcoef(b2_u_tur_final,a3_u_tur_final,time_index_u)
+
+    # get mean velocity
+    b2_u_ins_mean = np.nanmean(b2_u_ins_rotate)
+    b3_u_ins_mean = np.nanmean(b3_u_ins_rotate)
+    b4_u_ins_mean = np.nanmean(b4_u_ins_rotate)
+    a1_u_ins_mean = np.nanmean(a1_u_ins_rotate)
+    a2_u_ins_mean = np.nanmean(a2_u_ins_rotate)
+    a3_u_ins_mean = np.nanmean(a3_u_ins_rotate)
+    print('mean velocity:',b2_u_ins_mean,b3_u_ins_mean,b4_u_ins_mean,a1_u_ins_mean,a2_u_ins_mean,a3_u_ins_mean)
+    
+    
+    # set coordinates and values 
+    height = [1.2,2,3.5,6,8.2,12.8,15.8,23,30.3,40.2,50.6,60.5]  # height of sonic above ground, m
+    x_axis = []
+    y_axis = []
+    z_axis = []    
+    x_axis_neg = []
+    y_axis_neg = []
+    z_axis_neg = []
+
+    #for i in range(int(len(time_index_u)/2)):
+    distance = 50
+    for i in range(distance):
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[5]-height[5])
+        z_axis.append(b2_uu_cor[i])        
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[5]-height[5])
+        z_axis_neg.append(b2_uu_cor[-i])
+    
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*b3_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[6]-height[5])
+        z_axis.append(b3_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[6]-height[5])
+        z_axis_neg.append(b3_uu_cor[-i])
+    
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*b4_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[7]-height[5])
+        z_axis.append(b4_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[7]-height[5])
+        z_axis_neg.append(b4_uu_cor[-i])        
+    
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*a1_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[8]-height[5])
+        z_axis.append(a1_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[8]-height[5])
+        z_axis_neg.append(a1_uu_cor[-i])        
+        
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*a2_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[9]-height[5])
+        z_axis.append(a2_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[9]-height[5])
+        z_axis_neg.append(a2_uu_cor[-i])       
+        
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*a3_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[10]-height[5])
+        z_axis.append(a3_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[10]-height[5])
+        z_axis_neg.append(a3_uu_cor[-i])   
+            
+    x_axis_final = np.append(x_axis_neg,x_axis)
+    y_axis_final = np.append(y_axis_neg,y_axis)
+    z_axis_final = np.append(z_axis_neg,z_axis)
+    # plot
+    cset = plt.tricontourf(x_axis_final,y_axis_final,z_axis_final,12,cmap='RdYlBu')
+    contour = plt.tricontour(x_axis_final,y_axis_final,z_axis_final,12,colors='k')
+    plt.clabel(contour)
+    plt.xlabel('delta x (m)')
+    plt.ylabel('delta z (m)')
+    plt.title(str(date_ins)+'_'+str(hour_ins)+'_Cor_uu')
+    plt.colorbar(cset)
+    plt.savefig('/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/'+'cor_uu_img_final_'+str(date_ins)+'_'+str(hour_ins)+'.png')
+    plt.show()
+    
+    # save
+    output_path = '/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/cor_uu_'+date_ins+'_'+str(hour_ins)+'.npy'
+    result = [b2_uu_cor,b3_uu_cor,b4_uu_cor,a1_uu_cor,a2_uu_cor,a3_uu_cor]
+    result2 = time_index_u
+    result3 = [b2_u_ins_mean,b3_u_ins_mean,b4_u_ins_mean,a1_u_ins_mean,a2_u_ins_mean,a3_u_ins_mean]
+    np.save(output_path,result)
+    np.save('/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/cor_uu_'+date_ins+'_'+str(hour_ins)+'_timeindex_u.npy',result2)
+    np.save('/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/cor_uu_'+date_ins+'_'+str(hour_ins)+'_mean_u.npy',result3)
+    print(date_ins+' '+str(hour_ins)+' cor_uu done')
+    
+    print("--- %s seconds ---" % (time.time() - start_time))
+    return 0
+    
+    
+   
+   def show_saved_data(date_ins,hour_ins,distance):
+    data_path = '/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/'
+    tur_data = glob.glob(data_path+'cor_uu_'+str(date_ins)+'_'+str(hour_ins)+'.npy')
+    mean_u_data = glob.glob(data_path+'cor_uu_'+str(date_ins)+'_'+str(hour_ins)+'_mean_u.npy')
+    time_index_u_data = glob.glob(data_path+'cor_uu_'+str(date_ins)+'_'+str(hour_ins)+'_timeindex_u.npy')
+    b2_uu_cor,b3_uu_cor,b4_uu_cor,a1_uu_cor,a2_uu_cor,a3_uu_cor = np.load(tur_data[0])
+    b2_u_ins_mean,b3_u_ins_mean,b4_u_ins_mean,a1_u_ins_mean,a2_u_ins_mean,a3_u_ins_mean = np.load(mean_u_data[0])
+    time_index_u = np.load(time_index_u_data[0])
+    print('mean u: ',np.load(mean_u_data[0]))
+    height = [1.2,2,3.5,6,8.2,12.8,15.8,23,30.3,40.2,50.6,60.5]  # height of sonic above ground, m
+    x_axis = []
+    y_axis = []
+    z_axis = []
+    
+    x_axis_neg = []
+    y_axis_neg = []
+    z_axis_neg = []
+    
+    #plt.plot(np.append(b2_uu_cor[-distance:],b2_uu_cor[0:distance]))
+    #plt.show()
+    # x    
+    for i in range(distance):
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[5]-height[5])
+        z_axis.append(b2_uu_cor[i])        
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[5]-height[5])
+        z_axis_neg.append(b2_uu_cor[-i])
+    
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*b3_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[6]-height[5])
+        z_axis.append(b3_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[6]-height[5])
+        z_axis_neg.append(b3_uu_cor[-i])
+    
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*b4_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[7]-height[5])
+        z_axis.append(b4_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[7]-height[5])
+        z_axis_neg.append(b4_uu_cor[-i])        
+    
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*a1_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[8]-height[5])
+        z_axis.append(a1_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[8]-height[5])
+        z_axis_neg.append(a1_uu_cor[-i])        
+        
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*a2_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[9]-height[5])
+        z_axis.append(a2_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[9]-height[5])
+        z_axis_neg.append(a2_uu_cor[-i])       
+        
+    for i in range(distance):
+        #x_axis.append(time_index_u[i]*a3_u_ins_mean*0.1)
+        x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
+        y_axis.append(height[10]-height[5])
+        z_axis.append(a3_uu_cor[i])
+        x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
+        y_axis_neg.append(height[10]-height[5])
+        z_axis_neg.append(a3_uu_cor[-i])            
+
+    #x_axis_final = x_axis_neg.append(x_axis)
+    #y_axis_final = y_axis_neg.append(y_axis)
+    #z_axis_final = z_axis_neg.append(z_axis)
+    
+    #reshape
+    x_axis = np.array(x_axis).reshape(6,-1)
+    y_axis = np.array(y_axis).reshape(6,-1)
+    z_axis = np.array(z_axis).reshape(6,-1)
+    
+    x_axis_neg = np.array(x_axis_neg).reshape(6,-1)
+    y_axis_neg = np.array(y_axis_neg).reshape(6,-1)
+    z_axis_neg = np.array(z_axis_neg).reshape(6,-1)
+    
+    x_axis_final = np.append(x_axis_neg,x_axis)
+    y_axis_final = np.append(y_axis_neg,y_axis)
+    z_axis_final = np.append(z_axis_neg,z_axis)
+    
+    
+    #plot
+    #plt.subplot(1, 2, 1)
+    #cset = plt.contourf(x_axis_neg,y_axis_neg,z_axis_neg,10,cmap='RdYlBu')
+    #contour = plt.contour(x_axis_neg,y_axis_neg,z_axis_neg,10,colors='k')
+    #plt.clabel(contour)
+    #plt.xlabel('delta x (m)')
+    #plt.ylabel('delta z (m)')
+    #plt.title(str(date_ins)+'_'+str(hour_ins)+'_Cor_uu')
+    #plt.colorbar(cset)
+    #plt.savefig('/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/'+'cor_uu_img_'+date_ins+'_'+str(hour_ins)+'.png')
+    
+    #plt.subplot(1, 2, 2)
+    #cset = plt.contourf(x_axis,y_axis,z_axis,10,cmap='RdYlBu')
+    #contour = plt.contour(x_axis,y_axis,z_axis,10,colors='k')
+    #plt.clabel(contour)
+    #plt.xlabel('delta x (m)')
+    #plt.ylabel('delta z (m)')
+    #plt.title(str(date_ins)+'_'+str(hour_ins)+'_Cor_uu')
+    #plt.colorbar(cset)
+    #plt.show()
+    
+    cset = plt.tricontourf(x_axis_final,y_axis_final,z_axis_final,12,cmap='RdYlBu')
+    contour = plt.tricontour(x_axis_final,y_axis_final,z_axis_final,12,colors='k')
+    plt.clabel(contour)
+    plt.xlabel('delta x (m)')
+    plt.ylabel('delta z (m)')
+    plt.title(str(date_ins)+'_'+str(hour_ins)+'_Cor_uu')
+    plt.colorbar(cset)
+    #plt.savefig('/projectnb/urbanclimate/zhihengl/EC_analysis/neutral_case/'+'cor_uu_img_final_'+str(date_ins)+'_'+str(hour_ins)+'.png')
+    plt.show()
+    
+    return 0
