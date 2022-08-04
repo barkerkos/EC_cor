@@ -1,0 +1,37 @@
+import glob
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+import pickle
+import math
+import time
+
+directory_neutral = "/projectnb/urbanclimate/yueqin/idaho_ec_jupyter/neutral_data_20200925_20210423/"
+neutral_case = pickle.load(open(glob.glob(directory_neutral+'neutral_case.pkl')[0],'rb'))
+print(len(neutral_case))
+for date in neutral_case:
+    day = date[0]
+    hour = date[1]
+    #print(date)
+    strday = str(day.strftime("%Y%m%d"))
+    print(strday,hour)
+    
+    
+# process all neutral case data
+for date in neutral_case:
+    day = date[0]
+    strday = int(str(day.strftime("%Y%m%d")))
+    hour = date[1]
+    #print(date[0])
+    #print(type(strday))
+    #print(type(hour))
+    main(strday,hour)
+    
+#show saved data
+distance = 50
+for date in neutral_case:
+    day = date[0]
+    strday = str(day.strftime("%Y%m%d"))
+    hour = date[1]
+    show_saved_data(strday,hour,distance)
