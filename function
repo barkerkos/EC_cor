@@ -201,55 +201,55 @@ def main(date,hour):
     for i in range(distance):
         x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
         y_axis.append(height[5]-height[5])
-        z_axis.append(b2_uu_cor[i])        
+        z_axis.append(b2_uu_cor[-i])        
         x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
         y_axis_neg.append(height[5]-height[5])
-        z_axis_neg.append(b2_uu_cor[-i])
+        z_axis_neg.append(b2_uu_cor[i])
     
     for i in range(distance):
         #x_axis.append(time_index_u[i]*b3_u_ins_mean*0.1)
         x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
         y_axis.append(height[6]-height[5])
-        z_axis.append(b3_uu_cor[i])
+        z_axis.append(b3_uu_cor[-i])
         x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
         y_axis_neg.append(height[6]-height[5])
-        z_axis_neg.append(b3_uu_cor[-i])
+        z_axis_neg.append(b3_uu_cor[i])
     
     for i in range(distance):
         #x_axis.append(time_index_u[i]*b4_u_ins_mean*0.1)
         x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
         y_axis.append(height[7]-height[5])
-        z_axis.append(b4_uu_cor[i])
+        z_axis.append(b4_uu_cor[-i])
         x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
         y_axis_neg.append(height[7]-height[5])
-        z_axis_neg.append(b4_uu_cor[-i])        
+        z_axis_neg.append(b4_uu_cor[i])        
     
     for i in range(distance):
         #x_axis.append(time_index_u[i]*a1_u_ins_mean*0.1)
         x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
         y_axis.append(height[8]-height[5])
-        z_axis.append(a1_uu_cor[i])
+        z_axis.append(a1_uu_cor[-i])
         x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
         y_axis_neg.append(height[8]-height[5])
-        z_axis_neg.append(a1_uu_cor[-i])        
+        z_axis_neg.append(a1_uu_cor[i])        
         
     for i in range(distance):
         #x_axis.append(time_index_u[i]*a2_u_ins_mean*0.1)
         x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
         y_axis.append(height[9]-height[5])
-        z_axis.append(a2_uu_cor[i])
+        z_axis.append(a2_uu_cor[-i])
         x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
         y_axis_neg.append(height[9]-height[5])
-        z_axis_neg.append(a2_uu_cor[-i])       
+        z_axis_neg.append(a2_uu_cor[i])       
         
     for i in range(distance):
         #x_axis.append(time_index_u[i]*a3_u_ins_mean*0.1)
         x_axis.append(time_index_u[i]*b2_u_ins_mean*0.1)
         y_axis.append(height[10]-height[5])
-        z_axis.append(a3_uu_cor[i])
+        z_axis.append(a3_uu_cor[-i])
         x_axis_neg.append(time_index_u[i]*b2_u_ins_mean*-0.1)
         y_axis_neg.append(height[10]-height[5])
-        z_axis_neg.append(a3_uu_cor[-i])   
+        z_axis_neg.append(a3_uu_cor[i])  
             
     x_axis_final = np.append(x_axis_neg,x_axis)
     y_axis_final = np.append(y_axis_neg,y_axis)
